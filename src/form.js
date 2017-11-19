@@ -1,75 +1,8 @@
 const React = require('react');
-const { get, set, isEqual } = require('lodash');
-
-class DefaultError extends React.Component {
-  render() {
-    const { error } = this.props;
-    return React.createElement('div', {}, error.message);
-  }
-}
-
-class DefaultLabel extends React.Component {
-  render() {
-    var props = this.props;
-    return React.createElement('label', { className: 'control-label' }, props.title || props.id);
-  }
-}
-
-class DefaultTitle extends React.Component {
-  render() {
-    var { level, title } = this.props;
-    if (level === 1) return null;
-    const h = React.createElement('h3', {}, title);
-    return React.createElement('div', { className: 'form-title' }, h);
-  }
-}
-
-class Field extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: props.value
-    }
-    this.onChange = this.onChange.bind(this);
-  }
-
-  onChange(event) {
-    const { id, field, onChange } = this.props;
-    this.setState({ value: event.target.value });
-    if (typeof onChange === 'function') onChange(id, field, event);
-  }
-
-  render() {
-    const { id, field, components } = this.props;
-    let label = null;
-
-    if (!get(field, 'options.noLabel')) {
-      const Label = (components || {}).Label || DefaultLabel;
-      label = React.createElement(Label, { id, title: field.title });
-    }
-
-    let content = null;
-    if (field.type === 'string') {
-      content = React.createElement('input', {
-          type: "text",
-          name: field.id,
-          value: this.state.value,
-          className: "form-control",
-          autoComplete: "off",
-          onChange: (event) => this.onChange(event)});
-    }
-
-    let errors = null;
-    if (field.errors && field.errors.length) {
-      const Error = (components || {}).Error || DefaultError;
-      errors = field.errors.map((error, i) => (React.createElement(Error, { key: i, error: error })));
-    }
-
-    return React.createElement('div',
-      { className: `col-xs-4${field.errors && field.errors.length ? ' has-error' : ''}` },
-       [label, content, errors]);
-  }
-};
+const { get, set, isEqual, extend } = require('lodash');
+const { DefaultError, DefaultLabel, DefaultTitle } = require('./controls/defaults');
+const { StringControl } = require('./controls/string');
+const { Field } = require('./field');
 
 export class Form extends React.Component {
   constructor(props, context) {
@@ -78,10 +11,22 @@ export class Form extends React.Component {
     this.onSubmit = this.onSubmit.bind(this);
     this.renderSchema = this.renderSchema.bind(this);
     this.onChange = this.onChange.bind(this);
-    this.state = {
+    this.state = extend({
       data: props.data || {},
       errors: {},
+    }, props.controls || {});
+
+    this.components = {
+      Label: DefaultLabel,
+      Title: DefaultTitle,
+      Error: DefaultError,
+      controls: {
+        'string': StringControl,
+      }
     };
+    if (props.components) {
+      this.components = extend(this.components, props.components);
+    }
 
     this.validateSchema();
   }
@@ -92,7 +37,6 @@ export class Form extends React.Component {
       const error = (this.state.errors || {})[key];
       count += error ? error.length : 0;
     }
-    console.log('hasErrors', count);
     return count !== 0;
   }
 
@@ -121,8 +65,6 @@ export class Form extends React.Component {
     if (!isEqual(field.errors, errors)) {
       field.errors = errors;
       state.errors[field.id] = errors;
-
-      // this.setState(state);
 
       if (emit) {
         const errorList = [];
@@ -179,15 +121,14 @@ export class Form extends React.Component {
       id: field.id,
       field: field,
       value: value,
-      components: this.props.components,
+      components: this.components,
       onChange: this.onChange
     });
   }
 
   renderProperties(id, properties, schema) {
     if (properties instanceof Array) {
-      return React.createElement('div', {}, 
-        properties.map((p, i) => this.renderProperties(`${id}.${i}`, p, schema)));
+      return properties.map((p, i) => this.renderProperties(`${id}.${i}`, p, schema));
     } else {
       const fields = [];
       for (let p in properties) {
@@ -205,9 +146,9 @@ export class Form extends React.Component {
 
   renderSchema(id, schema) {
     const { components } = this.props;
-    const Title = (components || {}).Title || DefaultTitle;
+    const Title = this.components.Title || DefaultTitle;
     return React.createElement('div', { key: `schema.${id}`, className: "form-block" }, [
-      React.createElement(Title, {level: schema.level, title: schema.title}),
+      React.createElement(Title, {key: 'title', level: schema.level, title: schema.title}),
       schema.properties ? this.renderProperties(id, schema.properties, schema) : null
     ]);
   }
