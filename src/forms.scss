@@ -1,0 +1,86 @@
+@import '../../styles/colors.scss';
+
+label {
+  font-size: 14px;
+}
+
+.animated {
+  transition: all .5s ease-in-out;
+}
+
+.overflow {
+  overflow: hidden;
+}
+
+.form-block {
+  display: inline-block;
+  width: 100%;
+  padding-bottom: 20px;
+}
+
+.form-row {
+  display: inline-block;
+  width: 100%;
+}
+
+.form-title {
+  border-top: 1px solid $main;
+  text-align: right;
+  padding: 0;
+  font-size: 16px;
+  
+  h3 {
+    background-color: $main;
+    display: inline-block;
+    border-radius: 0 0 10px 10px;
+    margin-top: 0;
+    margin-right: 20px;
+    padding: 4px 10px;
+    font-size: inherit;
+    font-weight: bold;
+    text-align: center;
+    width: 150px;
+
+    span {
+      color: #fff;
+    }
+  }
+}
+
+.visible {
+  opacity: 1;
+}
+
+.invisible {
+  opacity: 0;
+}
+
+.has-error {
+  // label{
+  //   span {
+  //     color: $danger;
+  //   }
+  // }
+
+  .btn-default {
+    border-color: $main;
+  }
+
+  .form-control {
+    border-color: $main;
+  }
+}
+
+.form-group-column {
+  column-count: 3;
+}
+
+.error-list {
+  .list-group-item {
+    font-size: 14px;
+    padding: 4px;
+    span {
+      color: $dark-danger;
+    }
+  }
+}
