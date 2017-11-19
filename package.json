@@ -1,0 +1,16 @@
+{
+  "name": "react-schema-form",
+  "version": "1.0.0",
+  "description": "Easy react form with JSON schema",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "json",
+    "form"
+  ],
+  "author": "Sixpaq",
+  "license": "ISC"
+}
