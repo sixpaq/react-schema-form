@@ -1,13 +1,14 @@
 # react-schema-form
 Easy form component with json schema definition
 
-
+```javascript
 render() {
   <Form name="MyForm" schema="sampleSchema" onSubmit={this.onSubmit} />
 }
+```
 
-
-Sample schema 1:
+### Sample schema 1:
+```javascript
 {
   title: 'Main Title',
   properties: {
@@ -17,3 +18,4 @@ Sample schema 1:
     city: { type: 'string', id: 'customer.address.city', required: true },
   }
 }
+```
