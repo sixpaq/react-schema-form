@@ -1,16 +1,18 @@
-const React = require('react');
-const { get, set, isEqual, extend } = require('lodash');
-const { DefaultError, DefaultLabel, DefaultTitle } = require('./controls/defaults');
-const { StringControl } = require('./controls/string');
-const { Field } = require('./field');
+import React from 'react';
+import { get, set, isEqual, extend } from 'lodash';
+import { Fade } from 'react-reveal';
+import { DefaultError, DefaultLabel, DefaultTitle } from './controls/defaults';
+import StringControl from './controls/string';
+import Field from './field';
 
-export class Form extends React.Component {
+class Form extends React.Component {
   constructor(props, context) {
     super(props, context);
 
     this.onSubmit = this.onSubmit.bind(this);
     this.renderSchema = this.renderSchema.bind(this);
     this.onChange = this.onChange.bind(this);
+    this.touchSchema = this.touchSchema.bind(this);
     this.state = extend({
       data: props.data || {},
       errors: {},
@@ -22,7 +24,7 @@ export class Form extends React.Component {
       Error: DefaultError,
       controls: {
         'string': StringControl,
-      }
+      },
     };
     if (props.components) {
       this.components = extend(this.components, props.components);
@@ -33,16 +35,37 @@ export class Form extends React.Component {
 
   hasErrors() {
     let count = 0;
-    for(let key in (this.state.errors || {})) {
-      const error = (this.state.errors || {})[key];
+    Object.values(this.state.errors || {}).forEach((error) => {
       count += error ? error.length : 0;
-    }
+    });
     return count !== 0;
   }
 
   onSubmit() {
-    if (this.hasErrors()) return;
-    if (typeof this.props.onSubmit === 'function') this.props.onSubmit(this.state.data);
+    this.touchSchema();
+    this.validateSchema();
+    if (typeof this.props.onSubmit === 'function') this.props.onSubmit(this.state.data, !this.hasErrors());
+  }
+
+  touchSchema() {
+    const { schema } = this.props;
+
+    const touchProperties = (properties) => {
+      if (properties instanceof Array) {
+        properties.forEach(p => touchProperties(p));
+        return;
+      }
+      Object.values(properties).forEach((prop) => {
+        if (prop && prop.properties) {
+          touchProperties(prop.properties);
+        } else {
+          prop.untouched = false;
+        }
+      });
+    };
+
+    touchProperties(schema.properties);
+    this.setState(this.state);
   }
 
   validateField(field, value, emit) {
@@ -68,10 +91,10 @@ export class Form extends React.Component {
 
       if (emit) {
         const errorList = [];
-        for(let key in state.errors) {
+        Object.keys(state.errors).forEach((key) => {
           const error = state.errors[key];
           error.map(e => errorList.push(e));
-        }
+        });
 
         const { onValidate } = this.props;
         if (typeof onValidate === 'function') {
@@ -89,7 +112,7 @@ export class Form extends React.Component {
         properties.forEach(p => validateProperties(p));
         return;
       }
-      for (let p in properties) {
+      Object.keys(properties).forEach((p) => {
         const o = properties[p];
         if (o && o.properties) {
           validateProperties(o.properties);
@@ -97,8 +120,8 @@ export class Form extends React.Component {
           const value = get(this.state.data, o.id);
           this.validateField(o, value, true);
         }
-      };
-    }
+      });
+    };
 
     validateProperties(schema.properties);
   }
@@ -119,38 +142,47 @@ export class Form extends React.Component {
     return React.createElement(Field, {
       key: field.id,
       id: field.id,
-      field: field,
-      value: value,
+      field,
+      value,
+      readonly: (field.readonly || this.props.readonly),
       components: this.components,
-      onChange: this.onChange
+      onChange: this.onChange,
     });
   }
 
   renderProperties(id, properties, schema) {
     if (properties instanceof Array) {
       return properties.map((p, i) => this.renderProperties(`${id}.${i}`, p, schema));
-    } else {
-      const fields = [];
-      for (let p in properties) {
-        const o = properties[p];
-        if (o.properties) {
-          o.level = schema.level + 1;
-          fields.push(this.renderSchema(`${id}.${p}`, o));
-        } else {
-          fields.push(this.renderField(`${id}.${p}`, o));
-        }
-      }
-      return React.createElement('div', { key: `prop.${id}`, className: "form-row" }, fields);
     }
+    const fields = [];
+    Object.keys(properties).forEach((p, index) => {
+      const o = properties[p];
+      if (o.properties) {
+        o.level = schema.level + 1;
+        fields.push(this.renderSchema(`${id}.${p}`, o, index));
+      } else {
+        fields.push(this.renderField(`${id}.${p}`, o, index));
+      }
+    });
+    return React.createElement('div', { key: `prop.${id}`, className: 'form-row' }, fields);
   }
 
-  renderSchema(id, schema) {
-    const { components } = this.props;
+  renderSchema(id, schema, index) {
     const Title = this.components.Title || DefaultTitle;
-    return React.createElement('div', { key: `schema.${id}`, className: "form-block" }, [
-      React.createElement(Title, {key: 'title', level: schema.level, title: schema.title}),
-      schema.properties ? this.renderProperties(id, schema.properties, schema) : null
-    ]);
+    return (
+      <div key={`schema.${id}`} className="form-block">
+        <Fade left delay={index * 100} big>
+          <Title level={schema.level} title={schema.title} />
+          {schema.properties ? this.renderProperties(id, schema.properties, schema) : null}
+        </Fade>
+      </div>
+    );
+    // return React.createElement('Fade', { right: true }, [
+    //   React.createElement('div', { key: `schema.${id}`, className: "form-block" }, [
+    //     React.createElement(Title, {key: 'title', level: schema.level, title: schema.title}),
+    //     schema.properties ? this.renderProperties(id, schema.properties, schema) : null,
+    //   ]),
+    // ]);
   }
 
   renderContent() {
@@ -163,7 +195,9 @@ export class Form extends React.Component {
     const { children } = this.props;
     return React.createElement('form', { onSubmit: (e) => { e.preventDefault(); this.onSubmit(); } }, [
       this.renderContent(),
-      children
+      children,
     ]);
   }
 }
+
+export default Form;
