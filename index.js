@@ -1,3 +1,3 @@
-const Form = require('./src');
+import Form from './src';
 
 module.exports = Form;

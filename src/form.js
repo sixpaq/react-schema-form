@@ -1,6 +1,5 @@
 import React from 'react';
 import { get, set, isEqual, extend } from 'lodash';
-import { Fade } from 'react-reveal';
 import { DefaultError, DefaultLabel, DefaultTitle } from './controls/defaults';
 import StringControl from './controls/string';
 import Field from './field';
@@ -171,18 +170,10 @@ class Form extends React.Component {
     const Title = this.components.Title || DefaultTitle;
     return (
       <div key={`schema.${id}`} className="form-block">
-        <Fade left delay={index * 100} big>
-          <Title level={schema.level} title={schema.title} />
-          {schema.properties ? this.renderProperties(id, schema.properties, schema) : null}
-        </Fade>
+        <Title level={schema.level} title={schema.title} />
+        {schema.properties ? this.renderProperties(id, schema.properties, schema) : null}
       </div>
     );
-    // return React.createElement('Fade', { right: true }, [
-    //   React.createElement('div', { key: `schema.${id}`, className: "form-block" }, [
-    //     React.createElement(Title, {key: 'title', level: schema.level, title: schema.title}),
-    //     schema.properties ? this.renderProperties(id, schema.properties, schema) : null,
-    //   ]),
-    // ]);
   }
 
   renderContent() {
