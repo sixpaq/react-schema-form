@@ -2,7 +2,7 @@
   "name": "react-schema-form",
   "version": "1.0.1",
   "description": "Easy react form with JSON schema",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build:dist": "react-build-dist --bundle-name index.js"
   },
