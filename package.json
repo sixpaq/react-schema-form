@@ -1,6 +1,6 @@
 {
-  "name": "react-schema-form",
-  "version": "1.0.1",
+  "name": "react-easy-schema-form",
+  "version": "1.0.2",
   "description": "Easy react form with JSON schema",
   "main": "dist/index.js",
   "scripts": {
@@ -11,6 +11,9 @@
     "json",
     "form"
   ],
+  "repository": {
+    "url": "https://github.com/sixpaq/react-schema-form"
+  },
   "author": "Mike Wijnen",
   "license": "ISC",
   "dependencies": {
